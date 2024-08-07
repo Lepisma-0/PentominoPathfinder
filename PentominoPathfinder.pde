@@ -26,27 +26,46 @@ class Node {
     return false;
   }
 }
-
-// Piece placing
-byte[][] board = new byte[8][8];
-ArrayList<Byte> used = new ArrayList<Byte>();
-
+// Board size, edit these to change the board size, WARNING! non square boards have not been tested
 int boardX = 8;
 int boardY = 8;
-byte pieceIndex = 0;
+
+// Displays the shortest path in white to gray squares
+boolean showPath = true;
+
+// Enables the animation of the flood algorithm, used for debugging
+boolean showAnim = false;
+
+// Color correction, this multiplies the hue of the pentominos, only affects the visuals
 int cc1 = 50;
 
-// Pathfinding
+// Color correction, this multiplies the color of the biggest flood, only affects the visuals
+int cc2 = 5;
+
+// This represents the end of the path, the value will remain even after the calculations are done
+Node deepestNode = null;
+
+// The board with the pentominos
+byte[][] board = new byte[8][8];
+
+// A list to keep track the used pentominos
+ArrayList<Byte> used = new ArrayList<Byte>();
+
+// Path and depth
 byte[][] path = new byte[8][8];
 int[][] depth = new int[8][8];
 
+// The starting position of every flood pass
 ArrayList<PVector> floods = new ArrayList<PVector>();
+
+// The list of nodes on a flood
 ArrayList<Node> floodNodes = new ArrayList<Node>();
 
+// Internal indexes
+byte pieceIndex = 0;
 byte floodIndex = 0;
-Node deepestNode = null;
-int cc2 = 5;
 
+// Animation variables for debugging, very useful
 ArrayList<Node> animation = new ArrayList<Node>();
 int animIndex = 0;
 
@@ -93,9 +112,7 @@ void draw() {
       rect(x * cellSize, y * cellSize, cellSize, cellSize);
     }
   }
-  
-  boolean showPath = true;
-  boolean showAnim = false;
+
   
   if (showPath) {
     Node node = deepestNode.parent;
@@ -233,12 +250,8 @@ void floodNode(Node node) {
   if (x > -1 && y > -1 && x < boardX && y < boardY) {
     
     // If there is no piece, this hasn't been evaluated before, OR the depth is higher (means this is a shorter path)
-    boolean noPieces = board[x][y] == 0;
-    boolean notEvaluated = path[x][y] == 0;
-    boolean lowerDepth = depth[x][y] > z;
-    
-    if (noPieces && (notEvaluated || lowerDepth)) {
-      animation.add(node);
+    if (board[x][y] == 0 && (path[x][y] == 0 || depth[x][y] > z)) {
+      if (showAnim) animation.add(node);
       
       // Set the depth and index of the flood
       path[x][y] = floodIndex;
@@ -268,7 +281,7 @@ void reFloodNode(Node node) {
     
     // If the path is from this flood, and the depth is zero (untouched) or higher (shorter path)
     if (path[x][y] == floodIndex && (depth[x][y] == 0 || depth[x][y] > z)) {
-      animation.add(node);
+      if (showAnim) animation.add(node);
       
       // Set the depth and index of the flood
       path[x][y] = floodIndex;
