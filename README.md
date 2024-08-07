@@ -1,5 +1,5 @@
 # PentominoPathfinder
-An algorithm that solves pentomino pathfinding puzzles made using processing
+An algorithm that solves pentomino pathfinding puzzles. made using processing
 
 # How run/edit the program
 You will need to install processing => https://processing.org/download and open the '.pde' file
