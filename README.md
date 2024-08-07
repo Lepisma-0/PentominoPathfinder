@@ -1,5 +1,9 @@
 # PentominoPathfinder
-An algorithm that solves pentomino pathfinding puzzles. Made using processing
+An algorithm that will solve pentomino pathfinding puzzles. Made using processing
+
+# How it works
+Right now this can place pentominos according to the rules and calculate the shortest path in 2ms average
+There is left to do the actual brute force logic to loop through all the states
 
 # How run/edit the program
 You will need to install processing => https://processing.org/download and open the '.pde' file
