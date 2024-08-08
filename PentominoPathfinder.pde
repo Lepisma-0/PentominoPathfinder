@@ -29,7 +29,8 @@ int animIndex = 0;
 void setup() {
   long start = System.nanoTime();
   size(1024, 1024);
-  solve();
+  //solve();
+  calculateQuantumData();
   println(NanoToMillis(System.nanoTime() - start) + " millis");
 }
 
@@ -40,6 +41,7 @@ double NanoToMillis(long nano) {
 void draw() {
   background(0);
   
+  if (true) return;
   // Get draw parameters
   int size = board[0].length;
   int cellSize = height / size;
