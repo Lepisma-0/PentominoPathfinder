@@ -1,3 +1,5 @@
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 
 // Board size, edit these to change the board size, WARNING! non square boards have not been tested
 int boardX = 8;
@@ -26,11 +28,49 @@ byte pieceIndex = 0;
 ArrayList<Node> animation = new ArrayList<Node>();
 int animIndex = 0;
 
+<<<<<<< Updated upstream
 void setup() {
   long start = System.nanoTime();
   size(1024, 1024);
   solve();
   println(NanoToMillis(System.nanoTime() - start) + " millis");
+=======
+int qBitIndex = 0;
+
+void setup() {  
+  size(1024, 1024);
+  
+  createNodes();
+
+  // Do some warmup
+  //for (int i = 0; i < 10; i++) {
+  //  solve();
+  // }
+  
+  
+  long start = System.nanoTime();
+  int count = 1;
+  for (int i = 0; i < count; i++) {
+    solve();
+  }
+  double t = NanoToMillis(System.nanoTime() - start);
+  println((t / count) + " millis to generate puzzle");
+  println((t) + " millis total to generate " + count + " puzzles");
+  
+>>>>>>> Stashed changes
+}
+
+long timerStart = 0;
+
+void startTimer() {
+  timerStart = System.nanoTime();
+}
+
+void endTimer(String message) {
+  double t = NanoToMillis(System.nanoTime() - timerStart);
+  DecimalFormat df = new DecimalFormat("#");
+  df.setMaximumFractionDigits(100);
+  println(df.format(t) + message);
 }
 
 double NanoToMillis(long nano) {
@@ -43,7 +83,21 @@ void draw() {
   // Get draw parameters
   int size = board[0].length;
   int cellSize = height / size;
+<<<<<<< Updated upstream
     
+=======
+  
+  pieceIndex = 3;
+  
+  
+  if (frameCount % 100 == 0) {
+    //allQbits[qBitIndex].use(false);
+    //qBitIndex = (qBitIndex + 1) % allQbits.length;
+    //allQbits[qBitIndex].use(true);
+    //solve();
+  }
+  
+>>>>>>> Stashed changes
   // Draw pieces
   for (int x = 0; x < size; x++) {
     for (int y = 0; y < size; y++) {
