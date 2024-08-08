@@ -54,7 +54,6 @@ void createNodes() {
   }
 }
 
-byte zero = 0;
 void flood(int x, int y) {  
   //path = new byte[boardX][boardY];
   for (int i = 0; i < path.length; i++) Arrays.fill(path[i], zero);

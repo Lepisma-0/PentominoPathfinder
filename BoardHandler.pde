@@ -68,7 +68,7 @@ boolean canPlace(int i, int v, int p_x, int p_y) {
   return true;
 }
   
-// Pentomino coordinates by SMISKI
+// Pentomino coordinates by hans314
 byte[][][] pieces = {
     // N
     {
