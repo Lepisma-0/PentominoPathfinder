@@ -1,6 +1,7 @@
 import java.util.Iterator; 
 import java.util.LinkedList; 
 import java.util.Queue;
+import java.util.Arrays;
 
 // This represents the end of the path, the value will remain even after the calculations are done
 Node deepestNode = null;
@@ -54,11 +55,14 @@ void createNodes() {
 }
 
 void flood(int x, int y) {  
-  path = new byte[boardX][boardY];
+  //path = new byte[boardX][boardY];
+  for (int i = 0; i < path.length; i++) Arrays.fill(path[i], zero);
+  
+  for (int i = 0; i < path.length; i++) Arrays.fill(depth[i], zero);
   
   // Clear arrays
-  floodNodes = new LinkedList<Node>();
-  depth = new int[boardX][boardY];
+  floodNodes.clear();
+  //depth = new int[boardX][boardY];
   floodIndex++;
   
   // Create first node
@@ -78,8 +82,8 @@ void flood(int x, int y) {
   // SECOND FLOOD
   
   // Clear arrays
-  floodNodes = new LinkedList<Node>();
-  depth = new int[boardX][boardY];
+  floodNodes.clear();
+  for (int i = 0; i < path.length; i++) Arrays.fill(depth[i], zero);
   
   // Create first node
   addNode(deepestNode.x, deepestNode.y, 0, 0);  
