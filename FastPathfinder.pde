@@ -1,16 +1,17 @@
-/*
+import java.util.Iterator; 
+import java.util.LinkedList; 
+import java.util.Queue;
+
 // This represents the end of the path, the value will remain even after the calculations are done
 Node deepestNode = null;
 
 // Path and depth
+Node[][] boardNodes = new Node[8][8];
 byte[][] path = new byte[8][8];
 int[][] depth = new int[8][8];
 
-// The starting position of every flood pass
-ArrayList<PVector> floods = new ArrayList<PVector>();
-
 // The list of nodes on a flood
-ArrayList<Node> floodNodes = new ArrayList<Node>();
+Queue<Node> floodNodes = new LinkedList<Node>();
 
 // Flood index
 byte floodIndex = 0;
@@ -20,14 +21,15 @@ class Node {
   public int y;
   public int z;
   public int from;
-  public Node parent;
   
-  public Node(int x, int y, int z, int from, Node parent) {
+  public Node(int x, int y) {
     this.x = x;
     this.y = y;
+  }
+  
+  public void setValues(int z, int from) {
     this.z = z;
     this.from = from;
-    this.parent = parent;
   }
   
   public boolean handle(Node other) {
@@ -35,7 +37,6 @@ class Node {
       if (z > other.z) {
         z = other.z;
         depth[x][y] = z;
-        parent = other.parent;
       }
       return true;
     }
@@ -44,21 +45,28 @@ class Node {
   }
 }
 
+void createNodes() {
+  for (int x = 0; x < boardX; x++) {
+    for (int y = 0; y < boardY; y++) {    
+      boardNodes[x][y] = new Node(x, y);
+    }   
+  }
+}
 
 void flood(int x, int y) {  
+  path = new byte[boardX][boardY];
+  
   // Clear arrays
-  floodNodes = new ArrayList<Node>();
+  floodNodes = new LinkedList<Node>();
   depth = new int[boardX][boardY];
   floodIndex++;
   
   // Create first node
-  addNode(x, y, 0, null);  
+  addNode(x, y, 0, 0);  
   
   // Dijkstra's algorithm
   while(floodNodes.size() > 0) {
-    Node node = floodNodes.get(0);
-    floodNodes.remove(0);
-       
+    Node node = floodNodes.poll();
     floodNode(node);
   }
   
@@ -70,17 +78,15 @@ void flood(int x, int y) {
   // SECOND FLOOD
   
   // Clear arrays
-  floodNodes = new ArrayList<Node>();
+  floodNodes = new LinkedList<Node>();
   depth = new int[boardX][boardY];
   
   // Create first node
-  addNode(deepestNode.x, deepestNode.y, 0, null);  
+  addNode(deepestNode.x, deepestNode.y, 0, 0);  
   
   // Dijkstra's algorithm
   while(floodNodes.size() > 0) {
-    Node node = floodNodes.get(0);
-    floodNodes.remove(0);
-       
+    Node node = floodNodes.poll();    
     reFloodNode(node);
   }
   
@@ -107,10 +113,10 @@ void floodNode(Node node) {
       depth[x][y] = z;
       
       // Flood neighbours
-      if (node.from != 2) addNode(x + 1, y, 1, node);
-      if (node.from != 1) addNode(x - 1, y, 2, node);
-      if (node.from != 4) addNode(x, y + 1, 3, node);
-      if (node.from != 3) addNode(x, y - 1, 4, node);
+      if (node.from != 2) addNode(x + 1, y, z, 1);
+      if (node.from != 1) addNode(x - 1, y, z, 2);
+      if (node.from != 4) addNode(x, y + 1, z, 3);
+      if (node.from != 3) addNode(x, y - 1, z, 4);
       
       // If this is the deepest node, store the position
       if (deepestNode == null || z > deepestNode.z) {
@@ -137,10 +143,10 @@ void reFloodNode(Node node) {
       depth[x][y] = z;
       
       // Flood neighbours
-      if (node.from != 2) addNode(x + 1, y, 1, node);
-      if (node.from != 1) addNode(x - 1, y, 2, node);
-      if (node.from != 4) addNode(x, y + 1, 3, node);
-      if (node.from != 3) addNode(x, y - 1, 4, node);
+      if (node.from != 2) addNode(x + 1, y, z, 1);
+      if (node.from != 1) addNode(x - 1, y, z, 2);
+      if (node.from != 4) addNode(x, y + 1, z, 3);
+      if (node.from != 3) addNode(x, y - 1, z, 4);
       
       // If this is the deepest node, store the position
       if (deepestNode == null || z > deepestNode.z) {
@@ -151,17 +157,18 @@ void reFloodNode(Node node) {
 }
 
 // Adds a node and does some checks to test duplicates
-void addNode(int x, int y, int from, Node parent) {
-  Node newNode = new Node(x, y, parent == null ? 0 : parent.z + 1, from, parent);
+void addNode(int x, int y, int z, int from) {
+  x = max(min(x, boardX - 1), 0);
+  y = max(min(y, boardY - 1), 0);
   
-  // Checks if the node is duplicate, if it is, apply depth and parent corrections
-  for (int i = 0; i < floodNodes.size(); i++) {
-    if (floodNodes.get(i).handle(newNode)) {
-      return;
-    }
+  Node newNode = boardNodes[x][y];
+  newNode.setValues(z + 1, from);
+  
+  Iterator<Node> it = floodNodes.iterator();
+  while (it.hasNext()) {
+    it.next().handle(newNode);
   }
   
   // Add node if nothing happens
   floodNodes.add(newNode);
 }
-*/

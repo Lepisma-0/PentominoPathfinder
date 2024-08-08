@@ -3,9 +3,6 @@
 int boardX = 8;
 int boardY = 8;
 
-// Displays the shortest path in white to gray squares
-boolean showPath = true;
-
 // Enables the animation of the flood algorithm, used for debugging
 boolean showAnim = false;
 
@@ -26,12 +23,26 @@ byte pieceIndex = 0;
 ArrayList<Node> animation = new ArrayList<Node>();
 int animIndex = 0;
 
-void setup() {
-  long start = System.nanoTime();
+int qBitIndex = 0;
+Qbit lastQbit = null;
+
+void setup() {  
   size(1024, 1024);
-  //solve();
+  
+  long start = System.nanoTime(); 
+  createNodes();
   calculateQuantumData();
-  println(NanoToMillis(System.nanoTime() - start) + " millis");
+  println(NanoToMillis(System.nanoTime() - start) + " millis to generate needed data");
+
+  /*
+  start = System.nanoTime();
+  int count = 1000;
+  for (int i = 0; i < count; i++) {
+    solve();
+  }
+  double t = NanoToMillis(System.nanoTime() - start);
+  println((t / count) + " millis to generate puzzle");
+  */
 }
 
 double NanoToMillis(long nano) {
@@ -40,12 +51,18 @@ double NanoToMillis(long nano) {
 
 void draw() {
   background(0);
-  
-  if (true) return;
   // Get draw parameters
   int size = board[0].length;
   int cellSize = height / size;
-    
+  
+  pieceIndex = 3;
+  
+  if (frameCount % 1 == 0) {
+    allQbits[qBitIndex].use(false);
+    qBitIndex = (qBitIndex + 1) % allQbits.length;
+    allQbits[qBitIndex].use(true);
+  }
+  
   // Draw pieces
   for (int x = 0; x < size; x++) {
     for (int y = 0; y < size; y++) {
@@ -59,6 +76,7 @@ void draw() {
     }
   }
   
+  /*
   // Draw path
   for (int x = 0; x < size; x++) {
     for (int y = 0; y < size; y++) {
@@ -71,18 +89,6 @@ void draw() {
       rect(x * cellSize, y * cellSize, cellSize, cellSize);
     }
   }
-
-  
-  if (showPath) {
-    Node node = deepestNode.parent;
-    
-    while (node != null) {
-      colorMode(RGB, 255);
-      fill(255 - node.z * cc2);
-      rect(node.x * cellSize + 5, node.y * cellSize + 5, cellSize - 10, cellSize - 10);
-      node = node.parent;
-    } 
-  }
   
   if (showAnim) {
     if (frameCount % 15 == 0) {
@@ -94,40 +100,14 @@ void draw() {
     fill(255);
     rect(node.x * cellSize + 5, node.y * cellSize + 5, cellSize - 10, cellSize - 10);
   }
-
+  */
 }
 
-void solve() {
-  // Clear all the arrays
-  pieceIndex = 1;
-  board = new byte[boardX][boardY];
-  path = new byte[boardX][boardY];
-  used = new ArrayList<Byte>();
-  
-  // The max amount of pentominos, the lower, the faster it goes but more things it misses
-  int hardPieceLimit = 4;
-  
-  for (int x = 0; x < boardX; x++) {
-    for (int y = 0; y < boardY; y++) {
-      
-      // Try place every single piece in this position, place the first one found
-      tryPlace(x, y);
-      
-      // Stop if the piece limit was reached
-      if (pieceIndex > hardPieceLimit) {
-        break;
-      }
-    }
-    
-    // Stop if the piece limit was reached
-    if (pieceIndex > hardPieceLimit) {
-      break;
-    }
-  }
-  
+void calculateShortestPath() {
   // Keep track of the best depth
   int bestDepth = 0;
   int[][] depthTemp = null;
+  floodIndex = 0;
   
   // Flood every blank cell that has not been flooded
   // This results in a list of floods that are separate from each other and their furthest point, that will be used as the starting point

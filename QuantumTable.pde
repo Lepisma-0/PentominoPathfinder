@@ -3,10 +3,12 @@
 //
 //
 
+ArrayList<Qbit> temporalAllQbits;
+Qbit[] allQbits;
 QbitCell[][] cells;
 
-
 void calculateQuantumData() {
+  temporalAllQbits = new ArrayList<Qbit>();
   cells = new QbitCell[boardX][boardY];
   b_QbitCell[][] b_cells = new b_QbitCell[boardX][boardY];
   
@@ -15,6 +17,9 @@ void calculateQuantumData() {
     for (int y = 0; y < boardY; y++) {    
       cells[x][y] = new QbitCell();
       b_cells[x][y] = new b_QbitCell();
+      
+      cells[x][y].x = x;
+      cells[x][y].y = y;
     }   
   }
   
@@ -28,30 +33,42 @@ void calculateQuantumData() {
       
       // Loop through all pieces
       for (int i = 0; i < 12; i++) {  
-        for (int v = 0; v < pieces[i].length; v++) { 
-         
-          // Loop through all the piece's positions
+        for (int v = 0; v < pieces[i].length; v++) {  
+          boolean safe = true;
+          
+          // Loop through all the piece's positions to see if the placement is valid
           byte[] piece = pieces[i][v];
+          
+          for (int c = 0; c < piece.length; c += 2) {
+            int p_x = piece[c] + x;
+            int p_y = piece[c + 1] + y;     
+            
+            // Check if is out of bounds
+            if (p_x >= boardX || p_y >= boardY) {          
+              safe = false;
+            }
+          }
+          
+          if (!safe) {
+            continue;
+          }
+          b_Qbit b_qBit = new b_Qbit(); 
+          b_qBit.piece = i;
+          b_qBit.variation = v;   
+          
+          Qbit qBit = new Qbit();
+          qBitList.add(qBit);
+          b_qBitList.add(b_qBit); 
+          
+          // Add all the positions to their required arrays
           for (int c = 0; c < piece.length; c += 2) {
             int p_x = piece[c] + x;
             int p_y = piece[c + 1] + y;     
             
             // Create a qbit for this piece and position
-            if (p_x < boardX && p_y < boardY) {          
-              b_Qbit b_qBit = new b_Qbit();
-              Qbit qBit = new Qbit();
-              qBitList.add(qBit);
-              
-              b_qBit.piece = i;
-              b_qBit.variation = v;         
-              b_qBitList.add(b_qBit);
-              b_qBit.cellsPresent.add(cells[p_x][p_y]);         
-              
-              b_cells[p_x][p_y].qBits.add(qBit);
-            }
+            b_qBit.cellsPresent.add(cells[p_x][p_y]);                   
+            b_cells[p_x][p_y].qBits.add(qBit);
           }
-          
-          
         }     
       } 
       
@@ -80,16 +97,39 @@ void calculateQuantumData() {
       b_cells[x][y].build(cells[x][y]);
     }   
   }
+  
+  allQbits = new Qbit[temporalAllQbits.size()];
+  allQbits = temporalAllQbits.toArray(allQbits);
+  println("Calculated a total: " + allQbits.length + " piece positions");
 }
 
 class QbitCell {
   public Qbit[] qBits;
+  public int x;
+  public int y;
+  
+  public Qbit getActiveQbit(int skips) {
+    for (int i = 0; i < qBits.length; i++) {
+      
+      if (qBits[i].canBeUsed()) {
+        if (skips > 0) {
+          skips--;
+        } else {
+          return qBits[i];
+        }
+      }
+    }
+    
+    return null;
+  }
   
   // Disables all the active cells
-  public void use(boolean state) {
+  public void use(boolean state, byte index) {
     for (int i = 0; i < qBits.length; i++) {
       qBits[i].blockedCells += state ? 1 : -1;
     }
+    
+    board[x][y] = state ? index : 0;
   }
   
   public void load(Qbit[] qBits) {
@@ -107,6 +147,10 @@ class Qbit {
   public QbitCell[] cellsPresent;
   public Qbit[] linkedQbits;
   
+  public Qbit() {
+    temporalAllQbits.add(this);
+  }
+  
   public void load(QbitCell[] cellsPresent, Qbit[] linkedQbits, int piece, int variation) {
     blockedCells = 0;
     blockedQbits = 0;
@@ -119,7 +163,7 @@ class Qbit {
   
   public void use(boolean state) {
     for (int i = 0; i < cellsPresent.length; i++) {
-      cellsPresent[i].use(state);
+      cellsPresent[i].use(state, pieceIndex);
     }
     
     for (int i = 0; i < linkedQbits.length; i++) {
