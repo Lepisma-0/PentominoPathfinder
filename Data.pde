@@ -1,71 +1,36 @@
-// Tries to place any legal pentomino on 'p_x' 'p_y'
-void tryPlace(int p_x, int p_y) {
+class Node {
+  public int x;
+  public int y;
+  public int z;
+  public int from;
   
-  // Loop through all the types
-  for (int i = 0; i < 12; i++) {
- 
-    // If this type has been used, ignore
-    if (hasBeenUsed(i)) {
-      continue;
-    }   
-    
-    // Loop through all the variants
-    int variants = pieces[i].length;
-    for (int v = 0; v < variants; v++) {
-      
-      // If it can't be placed, ignore
-      if (!canPlace(i, v, p_x, p_y)) {
-        continue;
-      }   
-      
-      // Get the positions for the cells of the piece
-      byte[] piece = pieces[i][v];
-            
-      // Place the cells and give them value for later visualization
-      for (int c = 0; c < piece.length; c += 2) {
-        int x = piece[c] + p_x;
-        int y = piece[c + 1] + p_y;
-        
-        // Set the color
-        board[x][y] = pieceIndex;
-      }
-      
-      // Add piece to the used list
-      used.add(byte(i));
-      pieceIndex++;
-      break;
-    } 
+  public Node(int x, int y) {
+    this.x = x;
+    this.y = y;
   }
-}
-
-// Checks if the pentomino 'i' has been used
-boolean hasBeenUsed(int i) {
-  // Check if the index is in the used list
-  for (int p = 0; p < used.size(); p++) {
-    if (used.get(p) == i) { 
+  
+  public void setValues(int z, int from) {
+    this.z = z;
+    this.from = from;
+  }
+  
+  void empty() {
+    x = 0;
+    y = 0;
+    z = 0;
+    from = 0;
+  }
+  
+  public boolean handle(Node other) {
+    if (x == other.x && y == other.y) {
+      if (z > other.z) {
+        z = other.z;
+      }
       return true;
     }
-  }
-  
-  return false;
-}
-
-// Checks if the 'i' 'v' pentomino can be placed in 'p_x' 'p_v'
-boolean canPlace(int i, int v, int p_x, int p_y) {
-  // Get the positions for each cell of the piece
-  byte[] piece = pieces[i][v];
-        
-  // Return true only if all the positions of the array are empty
-  for (int c = 0; c < piece.length; c += 2) {
-    int x = piece[c] + p_x;
-    int y = piece[c + 1] + p_y;
     
-    if (x >= boardX || y >= boardY || board[x][y] != 0) {
-      return false;
-    }
+    return false;
   }
-  
-  return true;
 }
   
 // Pentomino coordinates by hans314

@@ -14,13 +14,6 @@ int cc1 = 50;
 // Color correction, this multiplies the color of the biggest flood, only affects the visuals
 int cc2 = 5;
 
-// The board with the pentominos
-byte[][] board = new byte[8][8];
-
-// A list to keep track the used pentominos
-ArrayList<Byte> used = new ArrayList<Byte>();
-byte pieceIndex = 0;
-
 // Animation variables for debugging, very useful
 ArrayList<Node> animation = new ArrayList<Node>();
 int animIndex = 0;
@@ -28,18 +21,20 @@ long timerStart = 0;
 
 void setup() {  
   size(1024, 1024);
-  createNodes();
   
   long start = System.nanoTime();
-  int count = 1;
+  int count = 1_000_000;
   
   for (int i = 0; i < count; i++) {
-    solve();
+    Layout layout = new Layout(8, 8, 4);
+    layout.start();
   }
   
   double t = NanoToMillis(System.nanoTime() - start);
-  println((t / count) + " millis to generate puzzle");
-  println((t) + " millis total to generate " + count + " puzzles");
+  DecimalFormat df = new DecimalFormat("#");
+  df.setMaximumFractionDigits(100);
+  println(df.format(t / count) + " millis to generate puzzle");
+  println(df.format(t) + " millis total to generate " + count + " puzzles");
 }
 
 void startTimer() {
@@ -59,6 +54,8 @@ double NanoToMillis(long nano) {
 
 void draw() {
   background(0);
+  
+  /*
   // Get draw parameters
   int size = board[0].length;
   int cellSize = height / size;
@@ -108,37 +105,5 @@ void draw() {
     fill(255);
     rect(node.x * cellSize + 5, node.y * cellSize + 5, cellSize - 10, cellSize - 10);
   }
-  
-}
-
-void calculateShortestPath() {
-  // Keep track of the best depth
-  int bestDepth = 0;
-  int[][] depthTemp = null;
-  floodIndex = 0;
-  
-  // Flood every blank cell that has not been flooded
-  // This results in a list of floods that are separate from each other and their furthest point, that will be used as the starting point
-  for (int x = 0; x < boardX; x++) {
-    for (int y = 0; y < boardY; y++) {      
-      
-      // If there is a piece or is already flooded, skip
-      if (board[x][y] != 0 || path[x][y] != 0) {
-        continue;
-      }
-      
-      // Flood this cell
-      flood(x, y);
-      
-      // If this is the deepest flood, keep the depth map
-      if (deepestNode.z > bestDepth) {
-        bestDepth = deepestNode.z;
-        depthTemp = depth.clone();
-      }
-    }
-  }
-  
-  if (depthTemp != null) {
-    depth = depthTemp.clone();
-  }
+  */
 }
