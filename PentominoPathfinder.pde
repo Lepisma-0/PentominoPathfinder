@@ -24,17 +24,11 @@ byte pieceIndex = 0;
 // Animation variables for debugging, very useful
 ArrayList<Node> animation = new ArrayList<Node>();
 int animIndex = 0;
+long timerStart = 0;
 
 void setup() {  
   size(1024, 1024);
-  
   createNodes();
-
-  // Do some warmup
-  //for (int i = 0; i < 10; i++) {
-  //  solve();
-  // }
-  
   
   long start = System.nanoTime();
   int count = 1;
@@ -42,12 +36,11 @@ void setup() {
   for (int i = 0; i < count; i++) {
     solve();
   }
+  
   double t = NanoToMillis(System.nanoTime() - start);
   println((t / count) + " millis to generate puzzle");
   println((t) + " millis total to generate " + count + " puzzles");
 }
-
-long timerStart = 0;
 
 void startTimer() {
   timerStart = System.nanoTime();
@@ -77,8 +70,8 @@ void draw() {
     //allQbits[qBitIndex].use(false);
     //qBitIndex = (qBitIndex + 1) % allQbits.length;
     //allQbits[qBitIndex].use(true);
-    //solve();
   }
+  
   // Draw pieces
   for (int x = 0; x < size; x++) {
     for (int y = 0; y < size; y++) {
@@ -91,8 +84,7 @@ void draw() {
       rect(x * cellSize, y * cellSize, cellSize, cellSize);
     }
   }
-  
-  
+   
   // Draw path
   for (int x = 0; x < size; x++) {
     for (int y = 0; y < size; y++) {

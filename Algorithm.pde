@@ -6,6 +6,8 @@ void solve() {
   path = new byte[boardX][boardY];
   used = new ArrayList<Byte>();
 
+  int hardPieceLimit = 4;
+
   for (int x = 0; x < boardX; x++) {
     for (int y = 0; y < boardY; y++) {
       

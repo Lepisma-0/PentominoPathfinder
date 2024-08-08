@@ -54,21 +54,18 @@ void createNodes() {
   }
 }
 
+byte zero = 0;
 void flood(int x, int y) {  
-  //path = new byte[boardX][boardY];
-  for (int i = 0; i < path.length; i++) Arrays.fill(path[i], zero);
-  
-  for (int i = 0; i < path.length; i++) Arrays.fill(depth[i], zero);
-  
   // Clear arrays
+  for (int i = 0; i < path.length; i++) Arrays.fill(path[i], zero); 
+  for (int i = 0; i < path.length; i++) Arrays.fill(depth[i], zero);
   floodNodes.clear();
-  //depth = new int[boardX][boardY];
   floodIndex++;
   
   // Create first node
   addNode(x, y, 0, 0);  
   
-  // Dijkstra's algorithm
+  // Modified dijkstra's algorithm
   while(floodNodes.size() > 0) {
     Node node = floodNodes.poll();
     floodNode(node);
@@ -81,9 +78,9 @@ void flood(int x, int y) {
   
   // SECOND FLOOD
   
-  // Clear arrays
-  floodNodes.clear();
+  // Clear arrays  
   for (int i = 0; i < path.length; i++) Arrays.fill(depth[i], zero);
+  floodNodes.clear();
   
   // Create first node
   addNode(deepestNode.x, deepestNode.y, 0, 0);  
