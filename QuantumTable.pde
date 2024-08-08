@@ -4,11 +4,21 @@
 //
 
 ArrayList<Qbit> temporalAllQbits;
+ArrayList<Qbit> usedQbits;
 Qbit[] allQbits;
 QbitCell[][] cells;
 
+void resetQbits() {
+  for (int i = usedQbits.size() - 1; i >= 0; i--) {
+    usedQbits.get(i).use(false);
+  }
+  
+  usedQbits.clear();
+}
+
 void calculateQuantumData() {
   temporalAllQbits = new ArrayList<Qbit>();
+  usedQbits = new ArrayList<Qbit>();
   cells = new QbitCell[boardX][boardY];
   b_QbitCell[][] b_cells = new b_QbitCell[boardX][boardY];
   
@@ -22,22 +32,21 @@ void calculateQuantumData() {
       cells[x][y].y = y;
     }   
   }
-  
-  // Create qbits
-  // Loop through board
-  for (int x = 0; x < boardX; x++) {
-    for (int y = 0; y < boardY; y++) {
-      // The arrays with all this piece's qbits
-      ArrayList<b_Qbit> b_qBitList = new ArrayList<b_Qbit>();
-      ArrayList<Qbit> qBitList = new ArrayList<Qbit>();     
-      
-      // Loop through all pieces
-      for (int i = 0; i < 12; i++) {  
-        for (int v = 0; v < pieces[i].length; v++) {  
+        
+  // Loop through all pieces
+  for (int i = 0; i < 12; i++) {  
+    // The arrays with all this piece's qbits
+    ArrayList<b_Qbit> b_qBitList = new ArrayList<b_Qbit>();
+    ArrayList<Qbit> qBitList = new ArrayList<Qbit>();     
+        
+    for (int v = 0; v < pieces[i].length; v++) {  
+      // Loop through all the piece's positions to see if the placement is valid
+      byte[] piece = pieces[i][v];
+        
+      // Loop through board
+      for (int x = 0; x < boardX; x++) {
+        for (int y = 0; y < boardY; y++) {
           boolean safe = true;
-          
-          // Loop through all the piece's positions to see if the placement is valid
-          byte[] piece = pieces[i][v];
           
           for (int c = 0; c < piece.length; c += 2) {
             int p_x = piece[c] + x;
@@ -47,18 +56,20 @@ void calculateQuantumData() {
             if (p_x >= boardX || p_y >= boardY) {          
               safe = false;
             }
+             
           }
           
           if (!safe) {
             continue;
           }
+          
           b_Qbit b_qBit = new b_Qbit(); 
           b_qBit.piece = i;
           b_qBit.variation = v;   
           
           Qbit qBit = new Qbit();
           qBitList.add(qBit);
-          b_qBitList.add(b_qBit); 
+          b_qBitList.add(b_qBit);
           
           // Add all the positions to their required arrays
           for (int c = 0; c < piece.length; c += 2) {
@@ -69,27 +80,24 @@ void calculateQuantumData() {
             b_qBit.cellsPresent.add(cells[p_x][p_y]);                   
             b_cells[p_x][p_y].qBits.add(qBit);
           }
-        }     
-      } 
-      
-      Qbit[] qBitArr = new Qbit[b_qBitList.size()];
-
-      // Link all the qBits together
-      for (int i = 0; i < b_qBitList.size(); i++) {
-        b_Qbit qBit = b_qBitList.get(i);
-        for (int j = 0; j < b_qBitList.size(); j++) {
-          b_Qbit other = b_qBitList.get(j);
-          
-          if (other != qBit) {
-            qBit.linkedQbits.add(qBitList.get(i));
-          }
         }
-        
-        qBitArr[i] = qBitList.get(i);
-        qBit.build(qBitArr[i]);
       }
     }
-  }
+    
+    Qbit[] qBitArr = new Qbit[b_qBitList.size()];
+  
+    // Link all the qBits together
+    for (int k = 0; k < b_qBitList.size(); k++) {
+      b_Qbit qBit = b_qBitList.get(k);
+      
+      qBit.linkedQbits = (ArrayList<Qbit>)qBitList.clone();
+      qBit.linkedQbits.remove(k);
+   
+      qBitArr[k] = qBitList.get(k);
+      qBit.build(qBitArr[k]);
+    }
+  } 
+  
   
   // Build all the cells
   for (int x = 0; x < boardX; x++) {
@@ -169,6 +177,9 @@ class Qbit {
     for (int i = 0; i < linkedQbits.length; i++) {
       linkedQbits[i].blockedQbits += state ? 1 : -1;
     }
+    
+    if (state) usedQbits.add(this);
+    else usedQbits.remove(this);
   }
   
   public boolean canBeUsed() {

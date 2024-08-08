@@ -34,15 +34,21 @@ void setup() {
   calculateQuantumData();
   println(NanoToMillis(System.nanoTime() - start) + " millis to generate needed data");
 
-  /*
+  // Do some warmup
+  for (int i = 0; i < 10; i++) {
+    solve();
+  }
+  
+  
   start = System.nanoTime();
-  int count = 1000;
+  int count = 100000;
   for (int i = 0; i < count; i++) {
     solve();
   }
   double t = NanoToMillis(System.nanoTime() - start);
   println((t / count) + " millis to generate puzzle");
-  */
+  println((t) + " millis total to generate " + count + " puzzles");
+  
 }
 
 double NanoToMillis(long nano) {
@@ -57,10 +63,12 @@ void draw() {
   
   pieceIndex = 3;
   
-  if (frameCount % 1 == 0) {
-    allQbits[qBitIndex].use(false);
-    qBitIndex = (qBitIndex + 1) % allQbits.length;
-    allQbits[qBitIndex].use(true);
+  
+  if (frameCount % 100 == 0) {
+    //allQbits[qBitIndex].use(false);
+    //qBitIndex = (qBitIndex + 1) % allQbits.length;
+    //allQbits[qBitIndex].use(true);
+    solve();
   }
   
   // Draw pieces
@@ -76,7 +84,7 @@ void draw() {
     }
   }
   
-  /*
+  
   // Draw path
   for (int x = 0; x < size; x++) {
     for (int y = 0; y < size; y++) {
@@ -100,7 +108,7 @@ void draw() {
     fill(255);
     rect(node.x * cellSize + 5, node.y * cellSize + 5, cellSize - 10, cellSize - 10);
   }
-  */
+  
 }
 
 void calculateShortestPath() {
