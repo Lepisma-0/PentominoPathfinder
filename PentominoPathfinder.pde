@@ -5,8 +5,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 // Board size, edit these to change the board size, WARNING! non square boards have not been tested
-int boardX = 8;
-int boardY = 8;
+int boardX = 7;
+int boardY = 7;
 
 // Enables the animation of the flood algorithm, used for debugging
 boolean showAnim = false;
@@ -38,7 +38,7 @@ void setup() {
   int count = 6;
   
   for (int i = 0; i < count; i++) {
-    Layout layout = new Layout(8, 8, 5, 39);
+    Layout layout = new Layout(boardX, boardY, 5, 29);
     layout.run();
     layouts.add(layout);
   }
@@ -68,8 +68,12 @@ double NanoToMillis(long nano) {
 }
 
 void draw() {  
-  for (int i = 0; i < layouts.size(); i++) {
-    layouts.get(i).run();
+  int iter = 9999;
+  
+  for (int k = 0; k < iter; k++) {
+    for (int i = 0; i < layouts.size(); i++) {
+      layouts.get(i).run();
+    }
   }
   
   while (bestLayouts.size() > 0) {
