@@ -29,10 +29,21 @@ public static Queue<LayoutData> bestLayouts = new LinkedList<LayoutData>();
 public static byte[][] bestBoard;
 public static byte[][] bestDepth;
 public static int bestScore;
+public static int bestScoreThreads;
 
 void setup() {  
   size(1024, 1024);
   
+  //
+  //dataPrinter();
+  finderAlgorithm();
+}
+
+void dataPrinter() {
+  
+}
+
+void finderAlgorithm() {  
   bestBoard = new byte[boardX][boardY];
   bestDepth = new byte[boardX][boardY];
   
@@ -70,7 +81,7 @@ double NanoToMillis(long nano) {
 }
 
 void draw() {  
-  int iter = 9999;
+  int iter = 100;
   
   for (int k = 0; k < iter; k++) {
     for (int i = 0; i < layouts.size(); i++) {
