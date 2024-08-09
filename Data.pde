@@ -3,6 +3,7 @@ class Node {
   public int y;
   public int z;
   public int from;
+  public boolean eval;
   
   public Node(int x, int y) {
     this.x = x;
@@ -15,21 +16,37 @@ class Node {
   }
   
   void empty() {
-    x = 0;
-    y = 0;
     z = 0;
     from = 0;
+    eval = false;
   }
   
   public boolean handle(Node other) {
     if (x == other.x && y == other.y) {
       if (z > other.z) {
         z = other.z;
+        println("It happened!!!!!!");
       }
       return true;
     }
     
     return false;
+  }
+}
+
+class LayoutData {
+  public byte[][] board;
+  public byte[][] depth;
+  public int score;
+  
+  public LayoutData(byte[][] board, byte[][] depth, int score) {
+    this.score = score;
+    
+    this.board = new byte[boardX][boardY];
+    for(int i = 0; i < board.length; i++) this.board[i] = board[i].clone();
+    
+    this.depth = new byte[boardX][boardY];
+    for(int i = 0; i < depth.length; i++) this.depth[i] = depth[i].clone();
   }
 }
   

@@ -1,13 +1,12 @@
 import java.util.Iterator; 
 import java.util.LinkedList; 
 import java.util.Queue;
+import java.util.Random;
 
-public class Layout extends Thread {
+public class Layout implements Runnable {
   // Pentominos
-  byte[] usedPieces;
-  byte[] pieceSubIndex;
-  byte[][] board;
-  
+  int[] usedPieces;
+  int[] pieceSubIndex;
   byte sizeX;
   byte sizeY;
  
@@ -18,48 +17,144 @@ public class Layout extends Thread {
   byte[][] path;
   byte floodIndex = 0;
   byte pieceIndex = 0;
+  int targetScore = 0;
   byte zero = 0;
   
-  public Layout(int x, int y, int pieces) {
+  int pieceCount;
+  Random random;
+  
+  // Layout
+  public byte[][] board;
+  public byte[][] depth;
+  public int score = 0;
+  
+  public Layout(int x, int y, int pieces, int targetScore) {
+    sizeX = (byte)x;
+    sizeY = (byte)y;
+    pieceCount = pieces;
+    
     board = new byte[x][y];
-    usedPieces = new byte[pieces];
-    pieceSubIndex = new byte[pieces];
+    usedPieces = new int[pieces];
+    pieceSubIndex = new int[pieces];
+    depth = new byte[x][y];
+    this.targetScore = targetScore;
     
     path = new byte[x][y];
     nodes = new Node[x][y];
-    for (int p_x = 0; x < x; x++) {
-      for (int p_y = 0; y < y; y++) {    
+    for (int p_x = 0; p_x < x; p_x++) {
+      for (int p_y = 0; p_y < y; p_y++) {    
         nodes[p_x][p_y] = new Node(p_x, p_y);
       }   
     }
-  }
-  
-  public void run() { 
-    fast();
+    
+    random = new Random();
   }
 
-  public void fast() {
-    pieceIndex = 1;
+  public void run() {
+    clr();
+    randomAlgorithm();
+  }
   
-    o: for (int x = 0; x < sizeX; x++) {
+  public void clr() {
+    for (int x = 0; x < sizeX; x++) {
+      for (int y = 0; y < sizeY; y++) { 
+        path[x][y] = 0;
+        depth[x][y] = 0;
+        board[x][y] = 0;
+      }   
+    }
+    
+    for (int i = 0; i < usedPieces.length; i++) {
+      usedPieces[i] = 0;
+      pieceSubIndex[i] = 0;
+    }
+    
+    pieceIndex = 0;
+    floodIndex = 0;
+  }
+  
+  /*
+  public void draw() {
+    int size = board[0].length;
+    int cellSize = height / size;
+    
+    for (int x = 0; x < sizeX; x++) {
       for (int y = 0; y < sizeY; y++) {
+        if (board[x][y] == 0) {
+          continue;
+        }
         
-        // Try place every single piece in this position, place the first one found
-        tryPlace(x, y);
-        
-        if (pieceIndex > usedPieces.length) break o;
+        colorMode(HSB, 255);
+        fill(board[x][y] * cc1, 128, 128);
+        rect(x * cellSize, y * cellSize, cellSize, cellSize);
       }
     }
     
-    calculateShortestPath();
+    for (int x = 0; x < sizeX; x++) {
+      for (int y = 0; y < sizeY; y++) {
+        if (depth[x][y] == 0) {
+          continue;
+        }     
+        
+        colorMode(RGB, 255);
+        fill(depth[x][y] * cc2, depth[x][y] * cc2, depth[x][y] * cc2);
+        rect(x * cellSize, y * cellSize, cellSize, cellSize);
+      }
+    }
+    
+    if (showAnim) {
+      if (frameCount % 10 == 0) {
+        animIndex = (animIndex + 1) % animation.size();
+      }
+      
+      Node node = animation.get(animIndex);
+      colorMode(RGB, 255);
+      fill(255);
+      rect(node.x * cellSize + 5, node.y * cellSize + 5, cellSize - 10, cellSize - 10);
+    }
+  }
+  */
+  
+  public void randomAlgorithm() {
+    pieceIndex = 1;
+    
+    for (int i = 0; i < pieceCount; i++) {
+      createPiece();  
+    } 
+
+    score = calculateShortestPath(); 
+    
+    if (score > bestScore) {     
+      println("Best: " + score);
+      LayoutData data = new LayoutData(board, depth, score);
+      bestLayouts.add(data);
+    }
   }
   
+  public void createPiece() {
+    int x = random.nextInt(sizeX);
+    int y = random.nextInt(sizeY);
+    int i = random.nextInt(12);
+    int v = random.nextInt(8);
+    
+    tryPlace(x, y, i, v); 
+  }
+  
+  /*
+  public void handlePiece(int i, int v) {
+    
+    
+    //byte[] piece = pieces[i][v];
+  }  
+  */
+  
   // Tries to place any legal pentomino on 'p_x' 'p_y'
-  void tryPlace(int p_x, int p_y) {
+  void tryPlace(int p_x, int p_y, int p_i, int p_v) {
     
     // Loop through all the types
-    for (byte i = 0; i < 12; i++) {
-   
+    for (byte l_i = 0; l_i < 12; l_i++) {
+      byte i = byte((l_i + p_i) % 12);
+      
       // If this type has been used, ignore
       if (hasBeenUsed(i)) {
         continue;
@@ -67,7 +162,8 @@ public class Layout extends Thread {
       
       // Loop through all the variants
       int variants = pieces[i].length;
-      for (byte v = 0; v < variants; v++) {
+      for (byte l_v = 0; l_v < variants; l_v++) {
+        byte v = byte((l_v + p_v) % variants);
         
         // If it can't be placed, ignore
         if (!canPlace(i, v, p_x, p_y)) {
@@ -87,8 +183,8 @@ public class Layout extends Thread {
         }
         
         // Add piece to the used list
-        usedPieces[pieceIndex - 1] = i;
-        pieceSubIndex[pieceIndex - 1] = v;
+        usedPieces[pieceIndex - 1] = i + 1;
+        pieceSubIndex[pieceIndex - 1] = v + 1;
         pieceIndex++;
         break;
       } 
@@ -99,7 +195,7 @@ public class Layout extends Thread {
   boolean hasBeenUsed(int i) {
     // Check if the index is in the used list
     for (int p = 0; p < usedPieces.length; p++) {
-      if (usedPieces[p] == i) { 
+      if ((usedPieces[p] - 1) == i) { 
         return true;
       }
     }
@@ -140,8 +236,18 @@ public class Layout extends Thread {
           continue;
         }
         
-        // Run the flood alogrithm and store best depth
-        bestDepth = max(bestDepth, flood(x, y));
+        int dep = flood(x, y);
+        
+        if (bestDepth < dep) {
+          bestDepth = dep;
+          
+          for (int i = 0; i < sizeX; i++) {
+            for (int k = 0; k < sizeY; k++) {
+              depth[i][k] = (byte)nodes[i][k].z;
+            }
+          }
+          
+        }
       }
     }
     
@@ -149,6 +255,7 @@ public class Layout extends Thread {
   }
   
   int flood(int s_x, int s_y) {    
+    
     for (int x = 0; x < sizeX; x++) {
       for (int y = 0; y < sizeY; y++) {    
         nodes[x][y].empty();
@@ -165,32 +272,23 @@ public class Layout extends Thread {
     // Modified dijkstra's algorithm
     while(floodNodes.size() > 0) {
       Node node = floodNodes.poll();
+      
       int x = node.x;
       int y = node.y;
       int z = node.z;
       
-      // Is in bounds
-      if (x > -1 && y > -1 && x < sizeX && y < sizeY) {
-        
-        // If there is no piece, this hasn't been evaluated before, OR the depth is higher (means this is a shorter path)
-        if (board[x][y] == 0 && (path[x][y] == 0 || nodes[x][y].z > z)) {
-          if (showAnim) animation.add(node);
-          
-          // Set the depth and index of the flood
-          path[x][y] = floodIndex;
-          nodes[x][y].z = z;
-          
-          // Flood neighbours
-          if (node.from != 2) addNode(x + 1, y, z, 1);
-          if (node.from != 1) addNode(x - 1, y, z, 2);
-          if (node.from != 4) addNode(x, y + 1, z, 3);
-          if (node.from != 3) addNode(x, y - 1, z, 4);
-          
-          // If this is the deepest node, store the position
-          if (deepestNode == null || z > deepestNode.z) {
-            deepestNode = node;
-          }
-        }
+      //if (showAnim) animation.add(node);
+      path[x][y] = floodIndex;
+    
+      // Flood neighbours
+      if (node.from != 2) addNode(x + 1, y, z, 1);
+      if (node.from != 1) addNode(x - 1, y, z, 2);
+      if (node.from != 4) addNode(x, y + 1, z, 3);
+      if (node.from != 3) addNode(x, y - 1, z, 4);
+      
+      // If this is the deepest node, store the position
+      if (deepestNode == null || z > deepestNode.z) {
+        deepestNode = node;
       }
     }
     
@@ -201,63 +299,68 @@ public class Layout extends Thread {
     
     // SECOND FLOOD
     
-    // Clear arrays  
+    // Clear arrays
+    for (int x = 0; x < sizeX; x++) {
+      for (int y = 0; y < sizeY; y++) {    
+        nodes[x][y].empty();    
+      }   
+    }
+    
     floodNodes.clear();
     addNode(deepestNode.x, deepestNode.y, 0, 0);  
-    deepestNode = null;
-    
+    deepestNode = floodNodes.peek();
+     
     // Modified dijkstra's algorithm
     while(floodNodes.size() > 0) {
-      Node node = floodNodes.poll();    
+      Node node = floodNodes.poll();
+      
       int x = node.x;
       int y = node.y;
       int z = node.z;
       
-      // Is in bounds
-      if (x > -1 && y > -1 && x < sizeX && y < sizeY) {
-        
-        // If the path is from this flood, and the depth is zero (untouched) or higher (shorter path)
-        if (path[x][y] == floodIndex && (nodes[x][y].z == 0 || nodes[x][y].z > z)) {
-          if (showAnim) animation.add(node);
-          
-          nodes[x][y].z = z;
-          
-          // Flood neighbours
-          if (node.from != 2) addNode(x + 1, y, z, 1);
-          if (node.from != 1) addNode(x - 1, y, z, 2);
-          if (node.from != 4) addNode(x, y + 1, z, 3);
-          if (node.from != 3) addNode(x, y - 1, z, 4);
-          
-          // If this is the deepest node, store the position
-          if (deepestNode == null || z > deepestNode.z) {
-            deepestNode = node;
-          }
-        }
+      //if (showAnim) animation.add(node);
+      
+      // Flood neighbours
+      if (node.from != 2) addNode(x + 1, y, z, 1);
+      if (node.from != 1) addNode(x - 1, y, z, 2);
+      if (node.from != 4) addNode(x, y + 1, z, 3);
+      if (node.from != 3) addNode(x, y - 1, z, 4);
+      
+      // If this is the deepest node, store the position
+      if (deepestNode == null || z > deepestNode.z) {
+        deepestNode = node;
       }
     }
     
     // If the flood was too small, discard it
-    if (deepestNode == null || deepestNode.z < 5) {
+    if (deepestNode == null || deepestNode.z < 4) {
       return 0;
     } 
     
     return deepestNode.z;
   }
-  
+
   // Adds a node and does some checks to test duplicates
   void addNode(int x, int y, int z, int from) {
-    x = max(min(x, boardX - 1), 0);
-    y = max(min(y, boardY - 1), 0);
-    
-    Node newNode = nodes[x][y];
-    newNode.setValues(z + 1, from);
-    
+    if (x < sizeX && x > -1 && y < sizeY && y > -1 && board[x][y] == 0) {
+      Node newNode = nodes[x][y];
+      
+      if (newNode.eval) {
+        return;
+      }
+      
+      newNode.eval = true;
+      newNode.setValues(z + 1, from);
+      floodNodes.add(newNode);
+    }
+   
+    /* 
     Iterator<Node> it = floodNodes.iterator();
     while (it.hasNext()) {
       it.next().handle(newNode);
     }
-    
+    */
     // Add node if nothing happens
-    floodNodes.add(newNode);
+  
   }
 }
