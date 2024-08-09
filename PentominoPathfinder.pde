@@ -84,6 +84,12 @@ void draw() {
         bestBoard = data.board;
         bestDepth = data.depth;
         bestScore = data.score;
+        
+        topLayouts.add(data);
+        
+        if (topLayouts.size() > 10) {
+          topLayouts.remove();
+        }
       }
     }
   }

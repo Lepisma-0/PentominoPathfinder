@@ -162,7 +162,12 @@ public class Layout implements Runnable {
 
   public void run() {
     randomAlgorithm();
-    addWiggle();
+    
+    for (int i = 0; i < 10; i++) {
+      addWiggle();
+    }
+    
+    
   }
   
   public void clr() {
@@ -193,7 +198,7 @@ public class Layout implements Runnable {
       wiggleAdded = 0;
     }
     
-    if (score > bestScore) {     
+    if (score >= bestScore) {     
       println("Best: " + score);
       LayoutData data = new LayoutData(board, depth, score);
       bestLayouts.add(data);
