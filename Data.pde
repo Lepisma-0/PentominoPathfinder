@@ -1,16 +1,18 @@
+
+
 class Node {
-  public int x;
-  public int y;
-  public int z;
-  public int from;
+  public byte x;
+  public byte y;
+  public byte z;
+  public byte from;
   public boolean eval;
   
-  public Node(int x, int y) {
+  public Node(byte x, byte y) {
     this.x = x;
     this.y = y;
   }
   
-  public void setValues(int z, int from) {
+  public void setValues(byte z, byte from) {
     this.z = z;
     this.from = from;
   }
@@ -19,18 +21,6 @@ class Node {
     z = 0;
     from = 0;
     eval = false;
-  }
-  
-  public boolean handle(Node other) {
-    if (x == other.x && y == other.y) {
-      if (z > other.z) {
-        z = other.z;
-        println("It happened!!!!!!");
-      }
-      return true;
-    }
-    
-    return false;
   }
 }
 
@@ -49,6 +39,9 @@ class LayoutData {
     for(int i = 0; i < depth.length; i++) this.depth[i] = depth[i].clone();
   }
 }
+
+// A series of offsets to wiggle a position around
+byte[] wiggleOffsets = {0, 0, 1, 0, 0, 1, -1, 0, 0, -1, 1, 1, 1, -1, -1, -1, -1, 1};
   
 // Pentomino coordinates by hans314
 byte[][][] pieces = {

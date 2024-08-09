@@ -5,8 +5,7 @@ import java.util.Random;
 
 public class Layout implements Runnable {
   // Pentominos
-  int[] usedPieces;
-  int[] pieceSubIndex;
+  Piece[] usedPieces;
   byte sizeX;
   byte sizeY;
  
@@ -28,21 +27,132 @@ public class Layout implements Runnable {
   public byte[][] depth;
   public int score = 0;
   
+  // Algorithm
+  int wiggleAdded = 0;
+  boolean hasInitialized = false;
+  
+  class Piece {
+    public byte x;
+    public byte y;
+    public byte i;
+    public byte v;
+    public byte c;
+    
+    public Piece(byte x, byte y, byte i, byte v, byte c) {
+      this.x = x;
+      this.y = y;
+      this.i = i;
+      this.v = v;
+      this.c = c;
+    }
+    
+    public boolean canBePlaced(int o_x, int o_y) {
+      // Get the positions for each cell of the piece
+      byte[] piece = pieces[i][v];
+            
+      // Return true only if all the positions of the array are empty
+      for (byte c = 0; c < piece.length; c += 2) {
+        int p_x = piece[c] + x + o_x;
+        int p_y = piece[c + 1] + y + o_y;
+        
+        if (!(p_x > -1 && p_y > -1 && p_x < sizeX && p_y < sizeY && board[p_x][p_y] == 0)) {
+          return false;
+        }
+      }
+      
+      return true;
+    }
+    
+    public void place() {
+      // Get the positions for each cell of the piece
+      byte[] piece = pieces[i][v];
+            
+      // Return true only if all the positions of the array are empty
+      for (byte p = 0; p < piece.length; p += 2) {
+        int p_x = piece[p] + x;
+        int p_y = piece[p + 1] + y;
+        if (p_x < sizeX && p_y < sizeY) board[p_x][p_y] = c;
+      } 
+    }
+    
+    public void take() {
+      // Get the positions for each cell of the piece
+      byte[] piece = pieces[i][v];
+            
+      // Return true only if all the positions of the array are empty
+      for (byte p = 0; p < piece.length; p += 2) {
+        int p_x = piece[p] + x;
+        int p_y = piece[p + 1] + y;
+        if (p_x < sizeX && p_y < sizeY) board[p_x][p_y] = 0;
+      } 
+    }
+    
+    public boolean wiggle() {
+      for (int i = 0; i < wiggleOffsets.length; i += 2) {
+        int o_x = wiggleOffsets[i];
+        int o_y = wiggleOffsets[i + 1];
+        
+        if (canBePlaced(o_x, o_y)) {
+          x += o_x;
+          y += o_y;
+          return true;
+        }
+      }
+      
+      return false;
+    }
+    
+    public boolean wiggleStep(int index) {
+      index /= 2;
+      int o_x = wiggleOffsets[index];
+      int o_y = wiggleOffsets[index + 1];
+      
+      if (canBePlaced(o_x, o_y)) {
+        take();       
+        
+        x += o_x;
+        y += o_y;
+        
+        place();
+        return true;
+      }
+      
+      return false;
+    }
+    
+    public boolean wiggleBackStep(int index) {
+      index /= 2;
+      int o_x = wiggleOffsets[index];
+      int o_y = wiggleOffsets[index + 1];
+      
+      if (canBePlaced(o_x, o_y)) {
+        take();       
+        
+        x -= o_x;
+        y -= o_y;
+        
+        place();
+        return true;
+      }
+      
+      return false;
+    }
+  }  
+    
   public Layout(int x, int y, int pieces, int targetScore) {
     sizeX = (byte)x;
     sizeY = (byte)y;
     pieceCount = pieces;
     
+    usedPieces = new Piece[pieces];
     board = new byte[x][y];
-    usedPieces = new int[pieces];
-    pieceSubIndex = new int[pieces];
     depth = new byte[x][y];
     this.targetScore = targetScore;
     
     path = new byte[x][y];
     nodes = new Node[x][y];
-    for (int p_x = 0; p_x < x; p_x++) {
-      for (int p_y = 0; p_y < y; p_y++) {    
+    for (byte p_x = 0; p_x < x; p_x++) {
+      for (byte p_y = 0; p_y < y; p_y++) {    
         nodes[p_x][p_y] = new Node(p_x, p_y);
       }   
     }
@@ -51,8 +161,8 @@ public class Layout implements Runnable {
   }
 
   public void run() {
-    clr();
     randomAlgorithm();
+    addWiggle();
   }
   
   public void clr() {
@@ -65,61 +175,37 @@ public class Layout implements Runnable {
     }
     
     for (int i = 0; i < usedPieces.length; i++) {
-      usedPieces[i] = 0;
-      pieceSubIndex[i] = 0;
+      usedPieces[i] = null;
     }
     
-    pieceIndex = 0;
+    pieceIndex = 1;
     floodIndex = 0;
   }
   
-  /*
-  public void draw() {
-    int size = board[0].length;
-    int cellSize = height / size;
+  // Find a good base, and wiggle the pieces around
+  public void addWiggle() {
+    int lastScore = score;
     
-    for (int x = 0; x < sizeX; x++) {
-      for (int y = 0; y < sizeY; y++) {
-        if (board[x][y] == 0) {
-          continue;
-        }
-        
-        colorMode(HSB, 255);
-        fill(board[x][y] * cc1, 128, 128);
-        rect(x * cellSize, y * cellSize, cellSize, cellSize);
-      }
+    wigglePieces(wiggleOffsets.length);
+    wiggleAdded++;
+    
+    if (lastScore < score) {
+      wiggleAdded = 0;
     }
     
-    for (int x = 0; x < sizeX; x++) {
-      for (int y = 0; y < sizeY; y++) {
-        if (depth[x][y] == 0) {
-          continue;
-        }     
-        
-        colorMode(RGB, 255);
-        fill(depth[x][y] * cc2, depth[x][y] * cc2, depth[x][y] * cc2);
-        rect(x * cellSize, y * cellSize, cellSize, cellSize);
-      }
-    }
-    
-    if (showAnim) {
-      if (frameCount % 10 == 0) {
-        animIndex = (animIndex + 1) % animation.size();
-      }
-      
-      Node node = animation.get(animIndex);
-      colorMode(RGB, 255);
-      fill(255);
-      rect(node.x * cellSize + 5, node.y * cellSize + 5, cellSize - 10, cellSize - 10);
-    }
+    if (score > bestScore) {     
+      println("Best: " + score);
+      LayoutData data = new LayoutData(board, depth, score);
+      bestLayouts.add(data);
+    }    
   }
-  */
   
+  // Pure randomness, records: 7x7: 29, 8x8: 36, 14x14: 60
   public void randomAlgorithm() {
-    pieceIndex = 1;
+    clr();
     
     for (int i = 0; i < pieceCount; i++) {
-      createPiece();  
+      createRandomPiece();  
     } 
 
     score = calculateShortestPath(); 
@@ -131,25 +217,59 @@ public class Layout implements Runnable {
     }
   }
   
-  public void createPiece() {
+  public void wigglePieces(int iterations) {
+    byte[][] save = new byte[sizeX][sizeY];
+    
+    for (int x = 0; x < sizeX; x++) {
+      for (int y = 0; y < sizeY; y++) {    
+        save[x][y] = board[x][y];
+      }   
+    }
+    
+    for (int i = 0; i < iterations; i++) {
+      for (int p = 0; p < usedPieces.length; p++) {
+        Piece piece = usedPieces[p];
+        
+        if (piece == null) {
+          continue;
+        }
+        
+        piece.wiggleStep(i);
+        
+        int newScore = calculateShortestPath();
+        
+        if (newScore > score) {
+          return;
+        }
+        
+        piece.wiggleBackStep(i);
+      }
+    }
+  }
+  
+  public Piece createRandomPiece() {
     int x = random.nextInt(sizeX);
     int y = random.nextInt(sizeY);
     int i = random.nextInt(12);
     int v = random.nextInt(8);
     
-    tryPlace(x, y, i, v); 
+    return forcePlace(x, y, i, v); 
   }
   
-  /*
-  public void handlePiece(int i, int v) {
+  Piece forcePlace(int p_x, int p_y, int p_i, int p_v) {
+    Piece piece = tryPlace(p_x, p_y, p_i, p_v);
     
+
+    if (piece.wiggle()) {
+      piece.place();
+      return piece;
+    }
     
-    //byte[] piece = pieces[i][v];
-  }  
-  */
+    return null;
+  }
   
   // Tries to place any legal pentomino on 'p_x' 'p_y'
-  void tryPlace(int p_x, int p_y, int p_i, int p_v) {
+  Piece tryPlace(int p_x, int p_y, int p_i, int p_v) {
     
     // Loop through all the types
     for (byte l_i = 0; l_i < 12; l_i++) {
@@ -160,65 +280,29 @@ public class Layout implements Runnable {
         continue;
       }   
       
-      // Loop through all the variants
-      int variants = pieces[i].length;
-      for (byte l_v = 0; l_v < variants; l_v++) {
-        byte v = byte((l_v + p_v) % variants);
-        
-        // If it can't be placed, ignore
-        if (!canPlace(i, v, p_x, p_y)) {
-          continue;
-        }   
-        
-        // Get the positions for the cells of the piece
-        byte[] piece = pieces[i][v];
-              
-        // Place the cells and give them value for later visualization
-        for (int c = 0; c < piece.length; c += 2) {
-          int x = piece[c] + p_x;
-          int y = piece[c + 1] + p_y;
-          
-          // Set the color
-          board[x][y] = pieceIndex;
-        }
-        
-        // Add piece to the used list
-        usedPieces[pieceIndex - 1] = i + 1;
-        pieceSubIndex[pieceIndex - 1] = v + 1;
-        pieceIndex++;
-        break;
-      } 
+      byte v = byte(p_v % pieces[i].length);
+      
+      Piece piece = new Piece(byte(p_x), byte(p_y), i, v, pieceIndex);
+      
+      usedPieces[pieceIndex - 1] = piece;
+      pieceIndex++;
+  
+      return piece;
     }
+    
+    return null;
   }
   
   // Checks if the pentomino 'i' has been used
   boolean hasBeenUsed(int i) {
     // Check if the index is in the used list
     for (int p = 0; p < usedPieces.length; p++) {
-      if ((usedPieces[p] - 1) == i) { 
+      if (usedPieces[p] != null && usedPieces[p].i == i) { 
         return true;
       }
     }
     
     return false;
-  }
-  
-  // Checks if the 'i' 'v' pentomino can be placed in 'p_x' 'p_v'
-  boolean canPlace(int i, int v, int p_x, int p_y) {
-    // Get the positions for each cell of the piece
-    byte[] piece = pieces[i][v];
-          
-    // Return true only if all the positions of the array are empty
-    for (int c = 0; c < piece.length; c += 2) {
-      int x = piece[c] + p_x;
-      int y = piece[c + 1] + p_y;
-      
-      if (x >= boardX || y >= boardY || board[x][y] != 0) {
-        return false;
-      }
-    }
-    
-    return true;
   }
   
   int calculateShortestPath() {
@@ -246,7 +330,6 @@ public class Layout implements Runnable {
               depth[i][k] = (byte)nodes[i][k].z;
             }
           }
-          
         }
       }
     }
@@ -350,7 +433,7 @@ public class Layout implements Runnable {
       }
       
       newNode.eval = true;
-      newNode.setValues(z + 1, from);
+      newNode.setValues(byte(z + 1), byte(from));
       floodNodes.add(newNode);
     }
    

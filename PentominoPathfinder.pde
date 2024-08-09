@@ -5,8 +5,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 // Board size, edit these to change the board size, WARNING! non square boards have not been tested
-int boardX = 7;
-int boardY = 7;
+int boardX = 8;
+int boardY = 8;
 
 // Enables the animation of the flood algorithm, used for debugging
 boolean showAnim = false;
@@ -23,6 +23,7 @@ int animIndex = 0;
 long timerStart = 0;
 
 ArrayList<Layout> layouts = new ArrayList<Layout>();
+Queue<LayoutData> topLayouts = new LinkedList<LayoutData>();
 
 public static Queue<LayoutData> bestLayouts = new LinkedList<LayoutData>();
 public static byte[][] bestBoard;
@@ -31,6 +32,7 @@ public static int bestScore;
 
 void setup() {  
   size(1024, 1024);
+  
   bestBoard = new byte[boardX][boardY];
   bestDepth = new byte[boardX][boardY];
   
@@ -38,7 +40,7 @@ void setup() {
   int count = 6;
   
   for (int i = 0; i < count; i++) {
-    Layout layout = new Layout(boardX, boardY, 5, 29);
+    Layout layout = new Layout(boardX, boardY, 5, 39);
     layout.run();
     layouts.add(layout);
   }
@@ -74,17 +76,19 @@ void draw() {
     for (int i = 0; i < layouts.size(); i++) {
       layouts.get(i).run();
     }
-  }
-  
-  while (bestLayouts.size() > 0) {
-    LayoutData data = bestLayouts.poll();
     
-    if (data.score > bestScore) {
-      bestBoard = data.board;
-      bestDepth = data.depth;
-      bestScore = data.score;
+    while (bestLayouts.size() > 0) {
+      LayoutData data = bestLayouts.poll();
+      
+      if (data.score > bestScore) {
+        bestBoard = data.board;
+        bestDepth = data.depth;
+        bestScore = data.score;
+      }
     }
   }
+  
+
 
   if (bestBoard == null) {
     return;
