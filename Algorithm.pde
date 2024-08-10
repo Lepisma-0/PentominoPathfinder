@@ -5,6 +5,7 @@ import java.util.Random;
 
 public class Layout implements Runnable {
   // Pentominos
+  byte[][] placementDirections;
   int[] usedPieces;
   int[] pieceSubIndex;
   byte sizeX;

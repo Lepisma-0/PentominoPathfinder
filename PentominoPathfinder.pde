@@ -5,8 +5,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 // Board size, edit these to change the board size, WARNING! non square boards have not been tested
-int boardX = 8;
-int boardY = 8;
+int boardX = 9;
+int boardY = 9;
 
 // Enables the animation of the flood algorithm, used for debugging
 boolean showAnim = false;
@@ -33,15 +33,17 @@ public static int bestScoreThreads;
 
 void setup() {  
   size(1024, 1024);
-  
-  //
-  //dataPrinter();
-  finderAlgorithm();
+  buildBoundsArray();
+
+  bestBoard = new byte[boardX][boardY];
+  //generateOthersA();
+  //generateOthersB();
+  //generateOthersC();
+  dataPrinter();
+  //finderAlgorithm();
 }
 
-void dataPrinter() {
-  
-}
+
 
 void finderAlgorithm() {  
   bestBoard = new byte[boardX][boardY];
@@ -51,7 +53,7 @@ void finderAlgorithm() {
   int count = 6;
   
   for (int i = 0; i < count; i++) {
-    Layout layout = new Layout(boardX, boardY, 5, 39);
+    Layout layout = new Layout(boardX, boardY, 5, 29);
     layout.run();
     layouts.add(layout);
   }
@@ -64,6 +66,8 @@ void finderAlgorithm() {
   println(df.format(t) + " millis total to generate " + count + " puzzles");
   */
 }
+
+
 
 void startTimer() {
   timerStart = System.nanoTime();
@@ -80,7 +84,50 @@ double NanoToMillis(long nano) {
   return ((double)nano) / 1000000;
 }
 
-void draw() {  
+int skips = 0;
+
+void draw() { 
+  background(0);
+    
+  int size = bestBoard[0].length;
+  int cellSize = height / size;
+  
+  if (frameCount % 50 == 0) {
+    skips++;
+  }
+  
+  int sk = skips;
+  
+  for (int a = 0; a < newPieces.length; a++) {
+    
+    int bl = newPieces[a].length;
+    for (int b = 0; b < bl; b++) {
+       
+      int cl = newPieces[a][b].length;
+      for (int c = 0; c < cl; c++) {
+        
+        if (sk > 0) {
+          sk--;
+          continue;
+        }
+        
+        int dl = newPieces[a][b][c].length;
+        for (int d = 0; d < dl; d += 2) {
+          int x = newPieces[a][b][c][d] + 4;
+          int y = newPieces[a][b][c][d + 1] + 4;
+
+          colorMode(HSB, 255);
+          fill(255, 128, 128);
+          stroke(0);
+          strokeWeight(2);
+          rect(x * cellSize, y * cellSize, cellSize, cellSize);      
+        }
+        
+        return;
+      }
+    }   
+  }
+  /*
   int iter = 100;
   
   for (int k = 0; k < iter; k++) {
