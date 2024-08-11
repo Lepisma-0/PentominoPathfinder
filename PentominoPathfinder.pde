@@ -33,16 +33,16 @@ public static int bestScoreThreads;
 
 void setup() {  
   size(1024, 1024);
-  buildBoundsArray();
-
+  //buildBoundsArray();
+  
   bestBoard = new byte[boardX][boardY];
+  dataPrinter();
   //generateOthersA();
   //generateOthersB();
   //generateOthersC();
-  dataPrinter();
+  //dataPrinter();
   //finderAlgorithm();
 }
-
 
 
 void finderAlgorithm() {  
@@ -88,10 +88,7 @@ int skips = 0;
 
 void draw() { 
   background(0);
-    
-  int size = bestBoard[0].length;
-  int cellSize = height / size;
-  
+  /*
   if (frameCount % 50 == 0) {
     skips++;
   }
@@ -105,6 +102,7 @@ void draw() {
        
       int cl = newPieces[a][b].length;
       for (int c = 0; c < cl; c++) {
+        
         
         if (sk > 0) {
           sk--;

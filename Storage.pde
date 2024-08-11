@@ -1,50 +1,75 @@
 // Random functions mostly used to generate data, i might have to use them later, but right now they here
 // It gets boring writing these over and over
 
-// Stores and prints all the cells on the outline of the pieces
-void dataPrinter() {
-  byte[][][][] boundsCompleteArray = new byte[newPieces.length][][][];
-  String print = "= {\n";
-  
-  for (int a = 0; a < newPieces.length; a++) {
-    
-    print += "  {\n";
-    
-    int bl = newPieces[a].length;
-    boundsCompleteArray[a] = new byte[bl][][];
-    for (int b = 0; b < bl; b++) {
+/*
+void merge() {
+  byte[][][] generated;
+  int bl = newPieces[0].length;
+  generated = new byte[bl][][];
+  for (int b = 0; b < bl; b++) {
+     
+    int cl = newPieces[0][b].length;
+    generated[b] = new byte[cl][];
+    for (int c = 0; c < cl; c++) {
+      ArrayList<Byte> placements = new ArrayList<Byte>();
       
-      print += "    {\n";
-      
-      int cl = newPieces[a][b].length;
-      boundsCompleteArray[a][b] = new byte[cl][];
-      for (int c = 0; c < cl; c++) {
+      int dl = newPieces[0][b][c].length;
+      generated[b][c] = new byte[dl];
+      piece: for (int d = 0; d < dl; d += 2) {
         
-        byte[] bounds = printerHandlePiece(a, b, c);
-        boundsCompleteArray[a][b][c] = bounds;
-        
-        print += "      {";
-        for (int d = 0; d < bounds.length; d++) {
-          print += bounds[d];
-          if ((d + 1) < bounds.length) print += ", ";
+        for (int a = 0; a < newPieces.length; a++) {
+    
+          int x = newPieces[a][b][c][d];
+          int y = newPieces[a][b][c][d + 1];
+          
+          for (int i = 0; i < placements.size(); i += 2) {
+            int px = placements.get(i);
+            int py = placements.get(i + 1);
+            
+            if (x == px && y == py) {
+              continue piece;
+            }
+          }
+          
+          placements.add(byte(x));
+          placements.add(byte(y));
         }
         
-        print += "},\n";
-      }
-      
-      print += "    },\n";
-    }
+        
+      }       
     
-    print += "  },\n";
-  }
+      byte[] result = new byte[placements.size()];
+      for(int t = 0; t < placements.size(); t++) result[t] = placements.get(t).byteValue();
+      generated[b][c] = result;
+    }
+  }   
   
-  print += "};";
-  saveStrings("da frick", new String[] {print});
-  println(print);
+  printSuperArray(generated, "im losing my grip on reality");
 }
 
-byte[] printerHandlePiece(int o, int i, int v) {
-  byte[] piece = newPieces[o][i][v];
+*/
+// Stores and prints all the cells on the outline of the pieces
+void dataPrinter() {
+  byte[][][] boundsCompleteArray = new byte[newerPieces.length][][];
+  
+  for (int a = 0; a < newerPieces.length; a++) {
+    
+    int bl = newPieces[a].length;
+    boundsCompleteArray[a] = new byte[bl][];
+    for (int b = 0; b < bl; b++) {
+      
+      byte[] bounds = printerHandlePiece(a, b);
+      boundsCompleteArray[a][b] = bounds;
+      
+    }
+    
+  }
+  
+  printSuperArray(boundsCompleteArray, "da frick");
+}
+
+byte[] printerHandlePiece(int i, int v) {
+  byte[] piece = newerPieces[i][v];
   ArrayList<Byte> bounds = new ArrayList<Byte>();
   
   for (int j = 0; j < piece.length; j += 2) {
@@ -59,16 +84,14 @@ byte[] printerHandlePiece(int o, int i, int v) {
         if (bx == piece[k] && by == piece[k + 1]) continue offset;
       }
       
-      for (int k = 0; k < bounds.size(); k += 3) {
+      for (int k = 0; k < bounds.size(); k += 2) {
         if (bx == bounds.get(k) && by == bounds.get(k + 1)) {
-          bounds.set(k + 2, byte(bounds.get(k + 2) | (0x01 << b)));
           continue offset;
         }
       }
       
       bounds.add(byte(bx));
       bounds.add(byte(by));
-      bounds.add(byte(0x01 << b));
     }
   }
 
@@ -201,7 +224,37 @@ void printMegaArray(byte[][][][] array, String saveName) {
   saveStrings(saveName, new String[] {print});
   println(print);
 }
+*/
+void printSuperArray(byte[][][] array, String saveName) {
+  String print = "= {\n";
+  
+  for (int a = 0; a < array.length; a++) {
+    
+    print += "  {\n";
+    
+    int bl = array[a].length;
+    for (int b = 0; b < bl; b++) {
+        
+      print += "    {";
+      
+      int cl = array[a][b].length;
+      for (int c = 0; c < cl; c++) {
+        print += array[a][b][c];
+        if ((c + 1) < cl) print += ", ";
+      }
+      
+      print += "},\n";
+    }
+    
+    print += "  },\n";
+  }
+  
+  print += "};";
+  saveStrings(saveName, new String[] {print});
+  println(print);
+}
 
+/*
 void keyPressed() {
   int size = bestBoard[0].length;
   int cellSize = height / size;

@@ -33,7 +33,7 @@ public class Layout implements Runnable {
     sizeX = (byte)x;
     sizeY = (byte)y;
     pieceCount = pieces;
-    
+
     board = new byte[x][y];
     usedPieces = new int[pieces];
     pieceSubIndex = new int[pieces];
