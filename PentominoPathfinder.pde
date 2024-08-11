@@ -88,43 +88,65 @@ int skips = 0;
 
 void draw() { 
   background(0);
+  
   /*
+  int size = bestBoard[0].length;
+  int cellSize = height / size;
+  int mx = floor(mouseX / cellSize);
+  int my = floor(mouseY / cellSize);
+  rect(mx * cellSize, my * cellSize, cellSize, cellSize); 
+  */
+  
+  
+  int size = bestBoard[0].length;
+  int cellSize = height / size;
+  
   if (frameCount % 50 == 0) {
     skips++;
   }
   
   int sk = skips;
   
-  for (int a = 0; a < newPieces.length; a++) {
-    
-    int bl = newPieces[a].length;
-    for (int b = 0; b < bl; b++) {
-       
-      int cl = newPieces[a][b].length;
-      for (int c = 0; c < cl; c++) {
-        
-        
-        if (sk > 0) {
-          sk--;
-          continue;
-        }
-        
-        int dl = newPieces[a][b][c].length;
-        for (int d = 0; d < dl; d += 2) {
-          int x = newPieces[a][b][c][d] + 4;
-          int y = newPieces[a][b][c][d + 1] + 4;
-
-          colorMode(HSB, 255);
-          fill(255, 128, 128);
-          stroke(0);
-          strokeWeight(2);
-          rect(x * cellSize, y * cellSize, cellSize, cellSize);      
-        }
-        
-        return;
+  int bl = newPieces.length;
+  for (int b = 0; b < bl; b++) {
+     
+    int cl = newPieces[b].length;
+    for (int c = 0; c < cl; c++) {
+      
+      
+      if (sk > 0) {
+        sk--;
+        continue;
       }
-    }   
+      
+      int dl = newPieces[b][c].length;
+      for (int d = 0; d < dl; d += 2) {
+        int x = newPieces[b][c][d] + 4;
+        int y = newPieces[b][c][d + 1] + 4;
+  
+        colorMode(HSB, 255);
+        fill(255, 128, 128);
+        stroke(0);
+        strokeWeight(2);
+        rect(x * cellSize, y * cellSize, cellSize, cellSize);      
+      }
+      
+      int el = bounds[b][c].length;
+      for (int e = 0; e < el; e += 2) {
+        int x = bounds[b][c][e] + 4;
+        int y = bounds[b][c][e + 1] + 4;
+  
+        colorMode(HSB, 255);
+        fill(255, 128, 128);
+        stroke(0);
+        strokeWeight(2);
+        rect(x * cellSize + 5, y * cellSize + 5, cellSize - 10, cellSize - 10);      
+      }
+      
+      return;
+    }
   }
+  
   /*
   int iter = 100;
   

@@ -6,8 +6,7 @@ import java.util.Random;
 public class Layout implements Runnable {
   // Pentominos
   byte[][] placementDirections;
-  int[] usedPieces;
-  int[] pieceSubIndex;
+  int usedPieces;
   byte sizeX;
   byte sizeY;
  
@@ -35,8 +34,7 @@ public class Layout implements Runnable {
     pieceCount = pieces;
 
     board = new byte[x][y];
-    usedPieces = new int[pieces];
-    pieceSubIndex = new int[pieces];
+    usedPieces = 0;
     depth = new byte[x][y];
     this.targetScore = targetScore;
     
@@ -65,10 +63,7 @@ public class Layout implements Runnable {
       }   
     }
     
-    for (int i = 0; i < usedPieces.length; i++) {
-      usedPieces[i] = 0;
-      pieceSubIndex[i] = 0;
-    }
+    usedPieces = 0;
     
     pieceIndex = 0;
     floodIndex = 0;
