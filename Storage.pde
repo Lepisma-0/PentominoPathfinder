@@ -1,6 +1,5 @@
-// Random functions mostly used to generate data, i might have to use them later, but right now they here
-// It gets boring writing these over and over
-
+// Random functions mostly used to generate data and even the data itself
+// Just a place to store random bits of code that i will later regret deleting
 /*
 void merge() {
   byte[][][] generated;
@@ -47,7 +46,7 @@ void merge() {
   printSuperArray(generated, "im losing my grip on reality");
 }
 
-*/
+
 // Stores and prints all the cells on the outline of the pieces
 void dataPrinter() {
   byte[][][] boundsCompleteArray = new byte[newPieces.length][][];
@@ -110,7 +109,7 @@ byte[] printerHandlePiece(int i, int v) {
   return result;
 }
 
-/*
+
 byte[][][] newerPieces = {
   {
     {0, 0, -1, 0, -2, 0, -3, 0, -4, 0},
@@ -354,7 +353,7 @@ void printMegaArray(byte[][][][] array, String saveName) {
   saveStrings(saveName, new String[] {print});
   println(print);
 }
-*/
+
 void printSuperArray(byte[][][] array, String saveName) {
   String print = "= {\n";
   
@@ -461,7 +460,7 @@ ArrayList<byte[][]> allPiecesBuilding = new ArrayList<byte[][]>();
 ArrayList<byte[]> buildingPieceRotations = new ArrayList<byte[]>();
 ArrayList<Byte> building = new ArrayList<Byte>();
 
-/*
+
 public void buildBoundsArray() {
   bounds = new byte[4][][][];
   bba_pt1();

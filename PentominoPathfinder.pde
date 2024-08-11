@@ -5,8 +5,10 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 // Board size, edit these to change the board size, WARNING! non square boards have not been tested
-int boardX = 9;
-int boardY = 9;
+static int boardX = 7;
+static int boardY = 7;
+static int maxPieceCount = 3;
+static int threadCount = Runtime.getRuntime().availableProcessors(); // Remove this and set to '1' to disable multithreading
 
 // Enables the animation of the flood algorithm, used for debugging
 boolean showAnim = false;
@@ -17,12 +19,7 @@ int cc1 = 50;
 // Color correction, this multiplies the color of the biggest flood, only affects the visuals
 int cc2 = 5;
 
-// Animation variables for debugging, very useful
-ArrayList<Node> animation = new ArrayList<Node>();
-int animIndex = 0;
 long timerStart = 0;
-
-ArrayList<Layout> layouts = new ArrayList<Layout>();
 Queue<LayoutData> topLayouts = new LinkedList<LayoutData>();
 
 public static Queue<LayoutData> bestLayouts = new LinkedList<LayoutData>();
@@ -32,42 +29,14 @@ public static int bestScore;
 public static int bestScoreThreads;
 
 void setup() {  
-  size(1024, 1024);
-  //buildBoundsArray();
+  size(1024, 1024); 
   
-  bestBoard = new byte[boardX][boardY];
-  dataPrinter();
-  //generateOthersA();
-  //generateOthersB();
-  //generateOthersC();
-  //dataPrinter();
-  //finderAlgorithm();
-}
-
-
-void finderAlgorithm() {  
   bestBoard = new byte[boardX][boardY];
   bestDepth = new byte[boardX][boardY];
   
-  //long start = System.nanoTime();
-  int count = 6;
-  
-  for (int i = 0; i < count; i++) {
-    Layout layout = new Layout(boardX, boardY, 5, 29);
-    layout.run();
-    layouts.add(layout);
-  }
-  
-  /*
-  double t = NanoToMillis(System.nanoTime() - start);
-  DecimalFormat df = new DecimalFormat("#");
-  df.setMaximumFractionDigits(100);
-  println(df.format(t / count) + " millis to generate puzzle");
-  println(df.format(t) + " millis total to generate " + count + " puzzles");
-  */
+  setupMinesweeper();
+  runMinesweeper();
 }
-
-
 
 void startTimer() {
   timerStart = System.nanoTime();
@@ -87,8 +56,7 @@ double NanoToMillis(long nano) {
 int skips = 0;
 
 void draw() { 
-  background(0);
-  
+ 
   /*
   int size = bestBoard[0].length;
   int cellSize = height / size;
@@ -98,13 +66,19 @@ void draw() {
   */
   
   
+ 
+  
+  
+  
+  if (frameCount % 50 != 0) {
+    return;
+  } 
+  
+  background(0);
+  
   int size = bestBoard[0].length;
   int cellSize = height / size;
-  
-  if (frameCount % 50 == 0) {
-    skips++;
-  }
-  
+  /*
   int sk = skips;
   
   int bl = newPieces.length;
@@ -146,7 +120,7 @@ void draw() {
       return;
     }
   }
-  
+  */
   /*
   int iter = 100;
   
@@ -155,45 +129,37 @@ void draw() {
       layouts.get(i).run();
     }
     
-    while (bestLayouts.size() > 0) {
-      LayoutData data = bestLayouts.poll();
+    
+  }
+  */
+  while (bestLayouts.size() > 0) {
+    LayoutData data = bestLayouts.poll();
+    
+    if (data.score > bestScore) {
+      bestBoard = data.board;
+      bestDepth = data.depth;
+      bestScore = data.score;
       
-      if (data.score > bestScore) {
-        bestBoard = data.board;
-        bestDepth = data.depth;
-        bestScore = data.score;
-        
-        topLayouts.add(data);
-        
-        if (topLayouts.size() > 10) {
-          topLayouts.remove();
-        }
+      topLayouts.add(data);
+      
+      if (topLayouts.size() > 10) {
+        topLayouts.remove();
       }
     }
   }
-  
-
-
+    
   if (bestBoard == null) {
     return;
   }
   
-  if (frameCount % 10 != 0) {
-    return;
-  }
-  background(0);
-    
-  int size = bestBoard[0].length;
-  int cellSize = height / size;
-  
   for (int x = 0; x < boardX; x++) {
     for (int y = 0; y < boardY; y++) {
-      if (bestBoard[x][y] == 0) {
+      if (bestBoard[x][y] < 1) {
         continue;
       }
       
-      colorMode(HSB, 255);
-      fill(bestBoard[x][y] * cc1, 128, 128);
+      colorMode(HSB, pieceCount());
+      fill(bestBoard[x][y] - 1, pieceCount() / 2, pieceCount() / 2);
       rect(x * cellSize, y * cellSize, cellSize, cellSize);
     }
   }
@@ -208,17 +174,6 @@ void draw() {
       fill(bestDepth[x][y] * cc2, bestDepth[x][y] * cc2, bestDepth[x][y] * cc2);
       rect(x * cellSize, y * cellSize, cellSize, cellSize);
     }
-  }
-  
-  if (showAnim) {
-    if (frameCount % 10 == 0) {
-      animIndex = (animIndex + 1) % animation.size();
-    }
-    
-    Node node = animation.get(animIndex);
-    colorMode(RGB, 255);
-    fill(255);
-    rect(node.x * cellSize + 5, node.y * cellSize + 5, cellSize - 10, cellSize - 10);
   }
   /*
   // Get draw parameters

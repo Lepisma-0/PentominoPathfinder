@@ -22,6 +22,7 @@ class Node {
   }
 }
 
+
 class LayoutData {
   public byte[][] board;
   public byte[][] depth;
@@ -29,13 +30,27 @@ class LayoutData {
 
   public LayoutData(byte[][] board, byte[][] depth, int score) {
     this.score = score;
-
+    
     this.board = new byte[boardX][boardY];
     for (int i = 0; i < board.length; i++) this.board[i] = board[i].clone();
-
+     
     this.depth = new byte[boardX][boardY];
     for (int i = 0; i < depth.length; i++) this.depth[i] = depth[i].clone();
   }
+  
+  /*
+  public byte[][] getByteBoard() {
+    byte[][] newBoard = new byte[board.bitArray.length][board.bitArray[0].size()];
+    
+    for (int x = 0; x < newBoard.length; x++) {
+      for (int y = 0; y < newBoard[0].length; y++) {
+        newBoard[x][y] = byte(board.get(x, y) ? 1 : 0);
+      }
+    }
+    
+    return newBoard;
+  }
+  */
 }
 
 // A series of offsets to wiggle a position around
@@ -44,16 +59,24 @@ byte[] wiggleOffsets = {0, 0, 1, 0, 0, 1, -1, 0, 0, -1, 1, 1, 1, -1, -1, -1, -1,
 // The bounds of the pieces, automated
 byte[] boundOffset = { 1, 0, 1, 1, 0, 1, -1, 1, -1, 0, -1, -1, 0, -1, 1, -1 };
 
-public byte[] getPiece(int i, int v) {
+public static byte[] getPiece(int i, int v) {
   return newPieces[i][v];
 }
 
-public byte[] getPieceBounds(int i, int v) {
+public static byte[] getPieceBounds(int i, int v) {
   return bounds[i][v];
 }
 
+public static int pieceCount() {
+  return newPieces.length;
+}
+
+public static int pieceVariants(int i) {
+  return newPieces[i].length;
+}
+
 // The outer cells of each piece
-byte[][][] bounds = {
+final static byte[][][] bounds = {
   {
     {1, 0, 1, 1, 0, 1, -1, 1, -1, 0, -1, -1, 1, -1, -1, -2, 1, -2, -1, -3, 1, -3, -1, -4, 1, -4, -1, -5, 0, -5, 1, -5},
     {1, 1, 0, 1, -1, 1, -1, 0, -1, -1, 0, -1, 1, -1, 2, 1, 2, -1, 3, 1, 3, -1, 4, 1, 4, -1, 5, 0, 5, 1, 5, -1},
@@ -282,7 +305,7 @@ byte[][][] bounds = {
   },
 };
 
-byte[][][] newPieces = {
+final static byte[][][] newPieces = {
   {
     {0, -1, 0, -2, 0, -3, 0, -4},
     {1, 0, 2, 0, 3, 0, 4, 0},
@@ -513,7 +536,7 @@ byte[][][] newPieces = {
 
 
 // Pentomino coordinates by hans314
-byte[][][] pieces = {
+final byte[][][] pieces = {
   // N
   {
     {0, 0, 0, 1, 0, 2, 1, 2, 1, 3},
