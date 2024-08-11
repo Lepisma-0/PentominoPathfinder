@@ -3,6 +3,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class MinesweeperSolver implements Callable<Integer> { 
   byte[][] board;
@@ -10,12 +12,19 @@ public class MinesweeperSolver implements Callable<Integer> {
   int usedPieces;
   int pieceCount;
  
+  byte floodIndex = 0;
   byte pieceIndex = 0;
   int targetScore = 0;
   byte zero = 0;
   
   int startX;
   int startY;
+  
+  Node[][] nodes;
+  Queue<Node> floodNodes = new LinkedList<Node>();
+  
+  byte[][] depth;
+  byte[][] path;
   
   public MinesweeperSolver(int x, int y) {
     startX = x;
@@ -32,6 +41,16 @@ public class MinesweeperSolver implements Callable<Integer> {
     for (int i = 1; i < boardY - 1; i++) {
       board[0][i] = -1;
       board[boardY - 1][i] = -1;
+    }
+    
+    depth = new byte[boardX][boardY];
+
+    path = new byte[boardX][boardY];
+    nodes = new Node[boardX][boardY];
+    for (byte p_x = 0; p_x < boardX; p_x++) {
+      for (byte p_y = 0; p_y < boardY; p_y++) {
+        nodes[p_x][p_y] = new Node(p_x, p_y);
+      }
     }
   } 
   
@@ -59,7 +78,6 @@ public class MinesweeperSolver implements Callable<Integer> {
       }
     }
     
-    println("Thread ended!");
     return 0;
   }
     
@@ -77,7 +95,7 @@ public class MinesweeperSolver implements Callable<Integer> {
         
         for (int i = 0; i < pieceCount(); i++) {
           // If the piece has been used, skip
-          if ((usedPieces & (0x01 << i)) == 1) continue;
+          if ((usedPieces >> i & 0x01) == 1) continue;
                     
           for (int v = 0; v < pieceVariants(i); v++) {
             // Can be placed?        
@@ -108,19 +126,27 @@ public class MinesweeperSolver implements Callable<Integer> {
   
   // Checks if certain pentomino has been placed
   boolean hasBeenUsed(int i) {
-    return (usedPieces & (0x01 << i)) == 1;
+    return (usedPieces >> i & 0x01) == 1;
   }    
   
   int evaluate(byte[][] other){
     board = other;
     int newScore = calculateShortestPath(); 
-  
-    if (newScore > score) {     
-      println("Best: " + score);
-      LayoutData data = new LayoutData(board, depth, score);
-      bestLayouts.add(data);
-      score = newScore;
-    }  
+    
+    Lock lock = new ReentrantLock();      
+    lock.lock();
+    
+    try { 
+      if (newScore > score) {     
+        println("Best: " + score);
+       
+        LayoutData data = new LayoutData(board, depth, newScore);
+        bestLayouts.add(data); 
+        score = newScore;   
+      }
+    } finally { 
+      lock.unlock(); 
+    }    
   
     return score;
   }

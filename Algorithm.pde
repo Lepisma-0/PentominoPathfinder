@@ -12,27 +12,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 int score = 0;
-
-Node[][] nodes;
-Queue<Node> floodNodes = new LinkedList<Node>();
-
-byte[][] depth;
-byte[][] path;
-byte floodIndex = 0;
-byte zero = 0;
+final byte zero = 0;
 
 ArrayList<MinesweeperSolver> tasks = new ArrayList<MinesweeperSolver>();
 
 void setupMinesweeper() {
-  depth = new byte[boardX][boardY];
-
-  path = new byte[boardX][boardY];
-  nodes = new Node[boardX][boardY];
-  for (byte p_x = 0; p_x < boardX; p_x++) {
-    for (byte p_y = 0; p_y < boardY; p_y++) {
-      nodes[p_x][p_y] = new Node(p_x, p_y);
-    }
-  }
 
   // Allow for pieces to be placed on the borders of the board
   for (int i = 0; i < boardX; i++) {
@@ -49,17 +33,13 @@ void setupMinesweeper() {
 void runMinesweeper() {
   ExecutorService exec = Executors.newFixedThreadPool(threadCount);
 
+  startTimer();
   try {
-      List<Future<Integer>> results = exec.invokeAll(tasks);
-      for (Future<Integer> result : results) System.out.println(result.get());    
-  } catch (InterruptedException | java.util.concurrent.ExecutionException e) {
+      exec.invokeAll(tasks);
+      exec.shutdown();
+  } catch (InterruptedException e) {
       e.printStackTrace();
   } finally {
-      exec.shutdown();
-  }
-}
-
-void statusMinesweeper() {
-  for (int i = 0; i < tasks.size(); i++) {
+    endTimer("ms to finish algorithm");
   }
 }
