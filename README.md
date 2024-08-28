@@ -4,8 +4,11 @@ An algorithm that will solve pentomino pathfinding puzzles. Made using processin
 # How it works
 Right now this can place pentominos according to the rules and calculate the shortest path 
 I tried brute force with many variations, random placements and other optimized searches,the best scores are:
+
 7x7 => 2-4s
+
 8x8 => +10m
+
 anything else risks starting a fire on my pc
 
 # How run/edit the program
